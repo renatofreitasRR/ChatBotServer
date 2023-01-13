@@ -24,6 +24,7 @@ namespace ChatService.Hubs
                    .Group(userConnection.Room)
                    .SendAsync("ReceivedMessage", _botUser, $"{userConnection.UserNickName} saiu do Chat");
 
+                SendGroups();
                 SendConnectedUsers(userConnection.Room);
             }
 
@@ -43,6 +44,7 @@ namespace ChatService.Hubs
                 .Group(userConnection.Room)
                 .SendAsync("ReceivedMessage", new UserConnection(_botUser), $"{userConnection.UserNickName} entrou no grupo");
 
+            await SendGroups();
             await SendConnectedUsers(userConnection.Room);
         }
 
@@ -66,6 +68,16 @@ namespace ChatService.Hubs
                 .Select(x => x.UserNickName);
 
             return Clients.Group(room).SendAsync("UsersInRoom", users);
+        }
+
+        public Task SendGroups()
+        {
+            var users = _connections
+              .Values
+              .Select(x => x.Room)
+              .Distinct();
+
+            return Clients.All.SendAsync("RoomsAvailable", users);
         }
     }
 }
